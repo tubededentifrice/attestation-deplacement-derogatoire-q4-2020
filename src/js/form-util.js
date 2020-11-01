@@ -93,6 +93,26 @@ export function getReasons (reasonInputs) {
   return reasons
 }
 
+export function getFile(fileInput) {
+  return new Promise((resolve, reject) => {
+      if (fileInput && fileInput.files && fileInput.files.length>0) {
+        const reader = new FileReader();
+        reader.readAsDataURL(fileInput.files[0]);
+        reader.onload = () => {
+          const result = reader.result;
+          setFile(fileInput, result);
+          resolve(result);
+        };
+        reader.onerror = error => reject(error);
+      } else {
+        resolve(fileInput.dataset.base64);
+      }
+  });
+}
+export function setFile(fileInput, value) {
+  fileInput.dataset.base64 = value;
+}
+
 export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonAlert, snackbar) {
   formInputs.forEach((input) => {
     const exempleElt = input.parentNode.parentNode.querySelector('.exemple')
@@ -130,6 +150,7 @@ export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonA
     event.preventDefault();
 
     const automated = $("#autogenerate").checked;
+    const signature = await getFile($("#signature"));
 
 
     const reasons = getReasons(reasonInputs)
@@ -155,7 +176,7 @@ export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonA
       creationInstant = new Date(creationInstant.getTime() - createdAgo*60000);
     }
 
-    const pdfBlob = await generatePdf(profile, reasons, pdfBase, creationInstant);
+    const pdfBlob = await generatePdf(profile, reasons, pdfBase, signature, creationInstant);
 
     const creationDate = creationInstant.toLocaleDateString('fr-CA')
     const creationHour = creationInstant
