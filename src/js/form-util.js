@@ -58,13 +58,28 @@ export function setReleaseDateTime (releaseDateInput) {
   releaseDateInput.value = getFormattedDate(loadedDate)
 }
 
-export function getProfile (formInputs) {
+export function getProfile (formInputs, automated) {
+  const sortieAgo = 18
+  const automatedDateSortie = new Date(new Date().getTime() - sortieAgo*60000);
+
   const fields = {}
   for (const field of formInputs) {
-    let value = field.value
-    if (field.id === 'field-datesortie') {
-      const dateSortie = field.value.split('-')
-      value = `${dateSortie[2]}/${dateSortie[1]}/${dateSortie[0]}`
+    let value = field.value;
+
+    switch(field.id) {
+      case 'field-datesortie':
+        if (automated) {
+          value = `${(automatedDateSortie.getDate()+"").padStart(2, "0")}/${(automatedDateSortie.getMonth()+"").padStart(2, "0")}/${automatedDateSortie.getFullYear()}`
+        } else {
+          const dateSortie = field.value.split('-')
+          value = `${dateSortie[2]}/${dateSortie[1]}/${dateSortie[0]}`
+        }
+        break;
+      case 'field-heuresortie':
+        if (automated) {
+          value = `${(automatedDateSortie.getHours()+"").padStart(2, "0")}:${(automatedDateSortie.getMinutes()+"").padStart(2, "0")}`
+        }
+        break;
     }
     fields[field.id.substring('field-'.length)] = value
   }
@@ -112,7 +127,10 @@ export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonA
   })
 
   $('#generate-btn').addEventListener('click', async (event) => {
-    event.preventDefault()
+    event.preventDefault();
+
+    const automated = $("#autogenerate").checked;
+
 
     const reasons = getReasons(reasonInputs)
     if (!reasons) {
@@ -127,11 +145,18 @@ export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonA
       return
     }
 
-    console.log(getProfile(formInputs), reasons)
+    const profile = getProfile(formInputs, automated);
+    console.log(profile, reasons)
 
-    const pdfBlob = await generatePdf(getProfile(formInputs), reasons, pdfBase)
+    const createdAgo = 20;
+    let creationInstant = new Date();
+    if (automated) {
+      // Créé il y a createdAgo minutes
+      creationInstant = new Date(creationInstant.getTime() - createdAgo*60000);
+    }
 
-    const creationInstant = new Date()
+    const pdfBlob = await generatePdf(profile, reasons, pdfBase, creationInstant);
+
     const creationDate = creationInstant.toLocaleDateString('fr-CA')
     const creationHour = creationInstant
       .toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })

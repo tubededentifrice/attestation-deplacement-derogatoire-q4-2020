@@ -18,9 +18,9 @@ export function getInputsMap (formInputs) {
     }
 
     map[id] = {
-      "id": id,
+      // "id": id,
       "value": value,
-      "type": type,
+      // "type": type,
     };
   });
 
@@ -41,7 +41,7 @@ export function restoreInputsMap (formInputs, map) {
       let type = item["type"];
 
       // Make it's the same input type as when we saved
-      if (type == input.type) {
+      if (!type || type == input.type) {
         switch(input.type) {
           case "checkbox":
             input.checked = value;
@@ -60,28 +60,34 @@ export function restoreInputsMap (formInputs, map) {
 }
 
 export function browserSave(key, data) {
+  const dataString = JSON.stringify(data);
+  window.location.hash = "#" + dataString;
+
   if (typeof(Storage) !== "undefined") {
-    localStorage.setItem(key, JSON.stringify(data));
-    return true;
+    localStorage.setItem(key, dataString);
+  }
+  return true;
+}
+
+export function browserGet(key) {
+  let itemString  = window.location.hash;
+  try {
+    itemString = decodeURI(itemString.replace("#", ""));
+    return JSON.parse(itemString);
+  } catch(e) {
+    console.log("Error while deserializing saved item", e);
   }
 
-  alert("Votre navigateur ne supporte malheureusement pas la sauvegarde");
-  return false;
-}
-export function browserGet(key) {
   if (typeof(Storage) !== "undefined") {
-    const item  = localStorage.getItem(key);
-    if (item) {
+    let itemString  = localStorage.getItem(key);
+    if (itemString) {
       try {
-        return JSON.parse(item);
+        return JSON.parse(itemString);
       } catch(e) {
         console.log("Error while deserializing saved item", e);
       }
     }
-  } else {
-    alert("Votre navigateur ne supporte malheureusement pas la sauvegarde");
   }
-
 
   return null;
 }
@@ -90,13 +96,20 @@ export function browserGet(key) {
 export function handleSave () {
     const form = $('#form-profile');
     const formInputs = $$('#form-profile input');
+    const autogenerate = $('#autogenerate');
     const savebar = $('#savebar')
     const profile = "default";
     const mapKey = profile + "_map";
+    const generateButton = $('#generate-btn');
+
+    formInputs.push(autogenerate);
 
     const existingMap = browserGet(mapKey);
     if (existingMap) {
       restoreInputsMap(formInputs, existingMap);
+      if (autogenerate.checked) {
+        generateButton.click();
+      }
     }
 
     $('#save-btn').addEventListener('click', async (event) => {
@@ -114,41 +127,6 @@ export function handleSave () {
         }
 
         return;
-
-        /*
-
-        const reasons = getReasons(reasonInputs)
-        if (!reasons) {
-          reasonFieldset.classList.add('fieldset-error')
-          reasonAlert.classList.remove('hidden')
-          reasonFieldset.scrollIntoView && reasonFieldset.scrollIntoView()
-          return
-        }
-
-        const invalid = validateAriaFields()
-        if (invalid) {
-          return
-        }
-
-        console.log(getProfile(formInputs), reasons)
-
-        const pdfBlob = await generatePdf(getProfile(formInputs), reasons, pdfBase)
-
-        const creationInstant = new Date()
-        const creationDate = creationInstant.toLocaleDateString('fr-CA')
-        const creationHour = creationInstant
-          .toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-          .replace(':', '-')
-
-        downloadBlob(pdfBlob, `attestation-${creationDate}_${creationHour}.pdf`)
-
-        snackbar.classList.remove('d-none')
-        setTimeout(() => snackbar.classList.add('show'), 100)
-
-        setTimeout(function () {
-          snackbar.classList.remove('show')
-          setTimeout(() => snackbar.classList.add('d-none'), 500)
-        }, 6000)*/
     });
 
 
