@@ -82,7 +82,7 @@ export function browserGet(key) {
     itemString = decodeURI(itemString.replace("#", ""));
     return JSON.parse(itemString);
   } catch(e) {
-    console.log("Error while deserializing saved item", e);
+    console.error("Error while deserializing saved item", e);
   }
 
   if (typeof(Storage) !== "undefined") {
@@ -91,7 +91,7 @@ export function browserGet(key) {
       try {
         return JSON.parse(itemString);
       } catch(e) {
-        console.log("Error while deserializing saved item", e);
+        console.error("Error while deserializing saved item", e);
       }
     }
   }

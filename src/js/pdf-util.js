@@ -96,31 +96,35 @@ export async function generatePdf (profile, reasons, pdfBase, signature, creatio
 
   // Ajout de la signature
   if (signature) {
-    const signatureImage = await pdfDoc.embedPng(signature);
+    try {
+      const signatureImage = await pdfDoc.embedPng(signature);
 
-    const maxWidth = 300;
-    const maxHeight = 100;
-    let width = signatureImage.width;
-    let height = signatureImage.height;
-    const ratioWidth = width / maxWidth;
-    const ratioHeight = height / maxHeight;
+      const maxWidth = 300;
+      const maxHeight = 100;
+      let width = signatureImage.width;
+      let height = signatureImage.height;
+      const ratioWidth = width / maxWidth;
+      const ratioHeight = height / maxHeight;
 
-    if (ratioWidth>1 || ratioHeight>1) {
-      if (ratioWidth>=ratioHeight) {
-        height = Math.round(height * maxWidth/width);
-        width = maxWidth;
-      } else {
-        width = Math.round(width * maxHeight/height);
-        height = maxHeight;
+      if (ratioWidth>1 || ratioHeight>1) {
+        if (ratioWidth>=ratioHeight) {
+          height = Math.round(height * maxWidth/width);
+          width = maxWidth;
+        } else {
+          width = Math.round(width * maxHeight/height);
+          height = maxHeight;
+        }
       }
-    }
 
-    page1.drawImage(signatureImage, {
-      "x": 100,
-      "y": 50,
-      "width": width,
-      "height": height,
-    });
+      page1.drawImage(signatureImage, {
+        "x": 100,
+        "y": 50,
+        "width": width,
+        "height": height,
+      });
+    } catch(e) {
+      console.error("Unable to add signature image", e);
+    }
   }
 
   // const shortCreationDate = `${creationDate.split('/')[0]}/${
