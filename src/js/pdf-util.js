@@ -13,8 +13,8 @@ const ys = {
   enfants: 211,
 }
 
-export async function generatePdf (profile, reasons, pdfBase) {
-  const creationInstant = new Date()
+export async function generatePdf (profile, reasons, pdfBase, creationInstant) {
+  creationInstant = creationInstant || new Date();
   const creationDate = creationInstant.toLocaleDateString('fr-FR')
   const creationHour = creationInstant
     .toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
