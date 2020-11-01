@@ -71,8 +71,14 @@
 
         <div class="wrapper">
             <p class="text-center mt-5">
-                <input type="checkbox" id="autogenerate" name="autogenerate" class="form-check-input" value="1" />
-                <label for="autogenerate">Génération automatique</label> <br />
+                <div class="form-group">
+                    <label for="signature">Signature (image PNG ou JPEG)</label>
+                    <input type="file" class="form-control-file" id="signature" name="signature" />
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="autogenerate" name="autogenerate" class="form-check-input" value="1" />
+                    <label for="autogenerate">Génération automatique</label>
+                </div>
                 <button type="button" id="save-btn" class="btn btn-secondary"><span>Sauvegarder mes informations dans mon navigateur</span></button>
             </p>
 

@@ -13,7 +13,7 @@ const ys = {
   enfants: 211,
 }
 
-export async function generatePdf (profile, reasons, pdfBase, creationInstant) {
+export async function generatePdf (profile, reasons, pdfBase, signature, creationInstant) {
   creationInstant = creationInstant || new Date();
   const creationDate = creationInstant.toLocaleDateString('fr-FR')
   const creationHour = creationInstant
@@ -93,6 +93,35 @@ export async function generatePdf (profile, reasons, pdfBase, creationInstant) {
   drawText(profile.city, 105, 177, locationSize)
   drawText(`${profile.datesortie}`, 91, 153, 11)
   drawText(`${profile.heuresortie}`, 264, 153, 11)
+
+  // Ajout de la signature
+  if (signature) {
+    const signatureImage = await pdfDoc.embedPng(signature);
+
+    const maxWidth = 300;
+    const maxHeight = 100;
+    let width = signatureImage.width;
+    let height = signatureImage.height;
+    const ratioWidth = width / maxWidth;
+    const ratioHeight = height / maxHeight;
+
+    if (ratioWidth>1 || ratioHeight>1) {
+      if (ratioWidth>=ratioHeight) {
+        height = Math.round(height * maxWidth/width);
+        width = maxWidth;
+      } else {
+        width = Math.round(width * maxHeight/height);
+        height = maxHeight;
+      }
+    }
+
+    page1.drawImage(signatureImage, {
+      "x": 100,
+      "y": 50,
+      "width": width,
+      "height": height,
+    });
+  }
 
   // const shortCreationDate = `${creationDate.split('/')[0]}/${
   //   creationDate.split('/')[1]

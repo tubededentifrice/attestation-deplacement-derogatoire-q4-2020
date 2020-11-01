@@ -1,9 +1,10 @@
 import { $, $$, appendTo, createElement } from './dom-utils'
+import { getFile, setFile } from './form-util'
 
-export function getInputsMap (formInputs) {
+export async function getInputsMap (formInputs) {
   let map = {};
 
-  formInputs.forEach((input) => {
+  await Promise.all(formInputs.map(async (input) => {
     let id = input.id;
     let value;
     let type = input.type;
@@ -11,6 +12,9 @@ export function getInputsMap (formInputs) {
     switch(type) {
       case "checkbox":
         value = input.checked;
+        break;
+      case "file":
+        value = await getFile(input);
         break;
       default:
         value = input.value;
@@ -22,12 +26,12 @@ export function getInputsMap (formInputs) {
       "value": value,
       // "type": type,
     };
-  });
+  }));
 
   return map;
 }
 
-export function restoreInputsMap (formInputs, map) {
+export async function restoreInputsMap (formInputs, map) {
   if (!map) {
     return false;
   }
@@ -49,6 +53,9 @@ export function restoreInputsMap (formInputs, map) {
           case "date":
           case "time":
             // Do not restore those fields
+            break;
+          case "file":
+            setFile(input, value);
             break;
           default:
             input.value = value;
@@ -93,20 +100,22 @@ export function browserGet(key) {
 }
 
 
-export function handleSave () {
+export async function handleSave () {
     const form = $('#form-profile');
     const formInputs = $$('#form-profile input');
     const autogenerate = $('#autogenerate');
+    const signature = $('#signature');
     const savebar = $('#savebar')
     const profile = "default";
     const mapKey = profile + "_map";
     const generateButton = $('#generate-btn');
 
     formInputs.push(autogenerate);
+    formInputs.push(signature);
 
     const existingMap = browserGet(mapKey);
     if (existingMap) {
-      restoreInputsMap(formInputs, existingMap);
+      await restoreInputsMap(formInputs, existingMap);
       if (autogenerate.checked) {
         generateButton.click();
       }
@@ -115,7 +124,7 @@ export function handleSave () {
     $('#save-btn').addEventListener('click', async (event) => {
         event.preventDefault();
 
-        const map = getInputsMap(formInputs);
+        const map = await getInputsMap(formInputs);
         if (browserSave(mapKey, map)) {
           savebar.classList.remove('d-none')
           setTimeout(() => savebar.classList.add('show'), 100)
